@@ -1,0 +1,6 @@
+[submodule "cmake"]
+	path = cmake
+	url = https://github.com/AlexBurnes/cmake_scripts.git
+[submodule "scripts"]
+	path = scripts
+	url = https://github.com/AlexBurnes/build_scripts.git

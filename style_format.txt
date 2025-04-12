@@ -1,0 +1,12 @@
+---
+BasedOnStyle: Google
+IndentWidth: 4
+NamespaceIndentation: All
+IndentCaseBlocks: true
+IndentCaseLabels: true
+IndentAccessModifiers: true
+AlignArrayOfStructures: Left
+ColumnLimit: 120
+AlignConsecutiveDeclarations: true
+AlignAfterOpenBracket: BlockIndent
+...

@@ -1,0 +1,14 @@
+[requires]
+sol2/3.3.1
+fmt/10.2.1
+gtest/1.14.0
+gperftools/2.15
+benchmark/1.9.0
+cxxopts/3.2.0
+
+[generators]
+CMakeDeps
+CMakeToolchain
+
+[options]
+sol2/*:with_lua=lua

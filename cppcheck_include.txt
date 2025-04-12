@@ -1,0 +1,1 @@
+#define unless(x) if (not(x))
