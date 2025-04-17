@@ -1,6 +1,11 @@
+include_directories(include)
+
 add_executable(
     luacpp
         main.cpp
+        script.cpp
+        file.cpp
+        regexp.cpp
 )
 
 target_link_libraries(
@@ -8,6 +13,7 @@ target_link_libraries(
     PRIVATE
         sol2::sol2
         fmt::fmt
+        tscns::tscns
         cxxopts::cxxopts
 )
 
@@ -21,6 +27,7 @@ target_link_libraries(
     PRIVATE
         sol2::sol2
         fmt::fmt
+        tscns::tscns
 )
 
 install(

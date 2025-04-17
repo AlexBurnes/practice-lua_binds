@@ -11,11 +11,13 @@ include(pedantic)
 
 find_package(cxxopts REQUIRED)
 find_package(fmt REQUIRED)
+find_package(tscns REQUIRED)
 find_package(GTest)
 find_package(gperftools)
 find_package(benchmark)
 add_compile_definitions(LUA_VERSION_NUM=504)
 find_package(sol2 CONFIG REQUIRED)
+include(sparsepp.cmake)
 
 enable_testing()
 

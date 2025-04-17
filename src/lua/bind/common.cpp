@@ -4,6 +4,7 @@
 
 namespace Lua {
     int bind_common(sol::state_view &lua, sol::metatable& readonly_metatable) {
+
         // set log and debug levels for lua
         lua["log_level"]   = 3;
         lua["debug_level"] = 1;
@@ -34,11 +35,6 @@ namespace Lua {
             le("[{}] [imsi:{}] [{}] {}",
                 ctx->sid, ctx->imsi, ctx->logic_session, msg
             );
-        };
-
-        // timeval to string
-        lua["tv2s"] = [](timespec_t tv) {
-            return utils::to_string(tv);
         };
 
         lua.new_usertype<utils::lvs>("lvs");

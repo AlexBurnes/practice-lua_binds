@@ -7,11 +7,8 @@ namespace Lua {
 
         bind_enums(lua, readonly_metatable);
         bind_common(lua, readonly_metatable);
-        bind_params(lua, readonly_metatable);
-        bind_profile(lua, readonly_metatable);
         bind_types(lua, readonly_metatable);
         bind_data(lua, readonly_metatable);
-        bind_services(lua, readonly_metatable);
 
         return ::ok;
 

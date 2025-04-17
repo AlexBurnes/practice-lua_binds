@@ -1,5 +1,4 @@
 #include "lua/state.hpp"
-#include "utils/utils.hpp"
 
 namespace Lua {
 
@@ -67,11 +66,6 @@ namespace Lua {
     // load and check lua logic script
     int State::load(std::string &script_code) {
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-        MD5((unsigned char *)*script_code, script_code.length(), (unsigned char *)script_md5);
-#pragma GCC diagnostic pop
-
         auto load_result = lua.script(*script_code, [](lua_State*, sol::protected_function_result pfr){
             return pfr;
         });
@@ -102,7 +96,7 @@ namespace Lua {
     }
 
     int State::version(sol::state &lua) {
-        thread::guard<thread::Mutex> state_guard(mutex_);
+        std::lock_guard<std::mutex> state_guard(mutex_);
         lua["_SOL_VERSION"]=SOL_VERSION_STRING;
         auto load_result = lua.script(R"(
             local jit_version
@@ -133,7 +127,7 @@ namespace Lua {
     }
 
     size_t State::memory_used() {
-        thread::guard<thread::Mutex> state_guard(mutex_);
+        std::lock_guard<std::mutex> state_guard(mutex_);
         return lua.memory_used();
     }
 

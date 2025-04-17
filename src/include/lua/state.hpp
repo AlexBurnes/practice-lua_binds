@@ -1,19 +1,10 @@
 #pragma once
 
 #include <sol/sol.hpp>
-#include <openssl/md5.h>
-#include <thread/thread.hpp>
-
-// http://lua-users.org/wiki/ThreadsTutorial
-//#define lua_lock(L) LuaLock(L)
-//#define lua_unlock(L) LuaUnlock(L)
-//#define lua_userstateopen(L) LuaLockInitial(L)
-//#define lua_userstatethread(L,L1) LuaLockInitial(L1)  // Lua 5.1
-//
-//void LuaLockInitial(lua_State * L);
-//void LuaLockFinal(lua_State * L);
-//void LuaLock(lua_State * L);
-//void LuaUnlock(lua_State * L);
+#include <thread>
+#include <mutex>
+#include <log/log.hpp>
+#include <typedef.h>
 
 namespace Lua {
 
@@ -42,10 +33,10 @@ namespace Lua {
             class StateVew;
 
         public:
-            thread::Mutex &mutex_;
+            std::mutex &mutex_;
             sol::table request;
 
-            Coroutine(thread::Mutex &mutex, sol::state& lua, const char* entry_function)
+            Coroutine(std::mutex &mutex, sol::state& lua, const char* entry_function)
             :
                 mutex_{mutex}, thread_{sol::thread::create(lua.lua_state())}, lua_{thread_.state()},
                 coroutine_{entry_state(lua_, entry_function)}
@@ -56,11 +47,10 @@ namespace Lua {
 
             template <typename ...T>
             sol::protected_function_result operator()(T&& ...args) {
-                thread::guard<thread::Mutex> state_guard(mutex_);
+                std::lock_guard<std::mutex> state_guard(mutex_);
                 return coroutine_(args...);
-            };
+            }
 
-            //FIXME rewrite access, assing operator [] like in sol and usa lua mutex
             sol::state_view& lua() {
                 return lua_;
             }
@@ -70,11 +60,11 @@ namespace Lua {
             }
 
             size_t memory_used() {
-                thread::guard<thread::Mutex> state_guard(mutex_);
+                std::lock_guard<std::mutex> state_guard(mutex_);
                 return lua_.memory_used();
             }
             void collect_garbage() {
-                thread::guard<thread::Mutex> state_guard(mutex_);
+                std::lock_guard<std::mutex> state_guard(mutex_);
                 lua_.collect_garbage();
             }
 
@@ -87,7 +77,7 @@ namespace Lua {
 
     class State {
         public:
-            thread::Mutex mutex_;
+            std::mutex mutex_;
 
             State() {
                 readonly_metatable = Lua::create_readonly_table(lua);
@@ -98,7 +88,7 @@ namespace Lua {
 
             Coroutine* coroutine(const char* entry_function) {
                 ld(3, "create coroutine entry function '{}'", entry_function);
-                thread::guard<thread::Mutex> state_guard(mutex_);
+                std::lock_guard<std::mutex> state_guard(mutex_);
                 auto coroutine_ = new Coroutine(mutex_, lua, entry_function);
                 return coroutine_;
             }
@@ -107,7 +97,6 @@ namespace Lua {
 
             std::string& version(void) {return script_version;};
             int load(std::string& script_code);
-            const unsigned char *md5(void) const {return script_md5;}
 
             template <typename... T>
             sol::table create_readonly_table_with(T&&... args) {
@@ -128,7 +117,7 @@ namespace Lua {
             size_t memory_used();
 
             void garbage_collect() {
-                thread::guard<thread::Mutex> state_guard(mutex_);
+                std::lock_guard<std::mutex> state_guard(mutex_);
                 lua.collect_garbage();
             }
 
@@ -137,7 +126,6 @@ namespace Lua {
             sol::metatable readonly_metatable;
 
             std::string script_version;
-            unsigned char script_md5[16];
 
             hash_map<std::string, sol::table> loaded_modules;
 
