@@ -6,6 +6,7 @@ gtest/1.14.0
 gperftools/2.15
 benchmark/1.9.0
 cxxopts/3.2.0
+pcre/8.45
 
 [generators]
 CMakeDeps

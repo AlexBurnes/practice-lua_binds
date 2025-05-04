@@ -19,7 +19,7 @@ int main(const int argc, const char *argv[]) {
         : "var/lua/"
     ;
 
-    cxxopts::Options options("luacpp", "luacpp " PROJECT_VERSION "Lua C++ binding example application");
+    cxxopts::Options options("luacpp", "luacpp " PROJECT_VERSION ". Lua C++ binding example application");
 
     options.custom_help("[OPTIONS]");
     options.positional_help("script.lua");

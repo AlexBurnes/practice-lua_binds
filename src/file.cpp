@@ -44,7 +44,6 @@ int File::Open(const char *name, unsigned short mode) {
         le("failed open file {}", name);
         return 0;
     }
-    iam("{}[{}]", file_name, file_fd);
     ld(1, "file opened '{}' as [{}]", file_name, file_fd);
     return 1;
 }

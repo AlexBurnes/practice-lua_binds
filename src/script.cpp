@@ -28,6 +28,29 @@ int exception_handler(
     return sol::stack::push(L, description);
 }
 
+std::string load_module(const std::string &script_dir, const std::string& module) {
+    std::string module_code = "";
+    std::string file_name = fmt::format("{}/{}", script_dir, module);
+    //!@note load code from script file
+    File logic_file;
+    unless (logic_file.Open(*file_name)) {
+        le("logic script '{}' not found", file_name);
+        return module_code;
+    }
+
+    auto logic_code = unique_free_ptr<char>((char *)calloc(logic_file.Size()+1, sizeof(char)), free);
+
+    auto read_size = logic_file.Read(logic_code.get(), logic_file.Size());
+    logic_file.Close();
+    unless (read_size == logic_file.Size()) {
+        le("failed read logic script '{}', readed {}, file size {}", file_name, read_size, logic_file.Size());
+        return module_code;
+    }
+    module_code = std::string{logic_code.get(), read_size};
+
+    return module_code;
+}
+
 int script_load(const std::string& file_name, const std::string& script_dir, bool test_script, bool show_coverage) {
 
     Regexp file_re((char *)*file_name);
@@ -142,14 +165,6 @@ int script_load(const std::string& file_name, const std::string& script_dir, boo
         return error;
     }
 
-    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    // Mock lur main logic script
-    auto lur_lua = std::make_shared<Lua::State>();
-    unless(lur_lua->init(R"(local lur = {} function lur.main() end return lur)")) {
-        le("failed init mock lur logic script");
-        return error;
-    }
-
     //C++ require to remember such thigs, what container would contain, and when it's lifetime is over
     hash_map<std::string, sol::table> loaded_modules;
     hash_map<std::string, bool> required_modules;
@@ -210,7 +225,7 @@ int script_load(const std::string& file_name, const std::string& script_dir, boo
     auto recursive_level = 0;
 
     lua.set_function("require",
-        [&loaded_modules, &lua, &required_modules, &recursive_level]
+        [&loaded_modules, &lua, &required_modules, &recursive_level, &script_dir]
         (std::string module, std::string version)
         -> sol::table& {
             ld(1, "require module {} version {}, recursive level {}", module, version, recursive_level);
@@ -225,7 +240,7 @@ int script_load(const std::string& file_name, const std::string& script_dir, boo
             }
 
 
-            auto module_code = load_module(module);
+            auto module_code = load_module(script_dir, module);
 
             if (module_code == "") {
                 le("required module {}-{} is not loaded into database", module, version);

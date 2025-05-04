@@ -6,6 +6,7 @@
 #include "utils/lvs.hpp"
 #include "utils/pad.hpp"
 #include "utils/split.hpp"
+#include "typedef.h"
 
 template <typename Key, typename Value>
 using hash_map = spp::sparse_hash_map<Key, Value>;

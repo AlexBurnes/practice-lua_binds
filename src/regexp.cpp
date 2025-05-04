@@ -1,4 +1,5 @@
 #include "regexp/regexp.hpp"
+#include "deffer.hpp"
 
 Regexp::Regexp(char *search, int vector_size)
     :
@@ -171,8 +172,8 @@ Regexp::regexp_t* Regexp::compile(const char *_expression) {
 
     ld(10, "compile regexp '{}'", _expression);
 
-    char * expression   = new char[strlen(_expression) + 1];
-    cleanup<char *> delete_expression(expression);
+    char *expression = new char[strlen(_expression) + 1];
+    deffer delete_expression([expression](){delete[] expression;});
     strcpy(expression, _expression);
     char * expression_p = expression + strlen(expression) - 1;
 

@@ -6,6 +6,14 @@ add_executable(
         script.cpp
         file.cpp
         regexp.cpp
+        lua/state.cpp
+        lua/bind.cpp
+        lua/bind/common.cpp
+        lua/bind/data.cpp
+        lua/bind/enums.cpp
+        lua/bind/funcs.cpp
+        lua/bind/types.cpp
+        utils/split.cpp
 )
 
 target_link_libraries(
@@ -15,6 +23,7 @@ target_link_libraries(
         fmt::fmt
         tscns::tscns
         cxxopts::cxxopts
+        pcre::pcre
 )
 
 add_executable(

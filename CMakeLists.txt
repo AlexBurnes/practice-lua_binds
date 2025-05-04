@@ -17,6 +17,7 @@ find_package(gperftools)
 find_package(benchmark)
 add_compile_definitions(LUA_VERSION_NUM=504)
 find_package(sol2 CONFIG REQUIRED)
+find_package(pcre CONFIG REQUIRED)
 include(sparsepp.cmake)
 
 enable_testing()

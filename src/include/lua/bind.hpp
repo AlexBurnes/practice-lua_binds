@@ -2,6 +2,7 @@
 
 #include <sol/sol.hpp>
 #include "types.hpp"
+#include "log/log.hpp"
 
 namespace Lua {
 

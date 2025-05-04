@@ -1,6 +1,5 @@
 #include <sol/sol.hpp>
 #include "lua/bind.hpp"
-#include "context.hpp"
 
 namespace Lua {
     int bind_common(sol::state_view &lua, sol::metatable& readonly_metatable) {
@@ -10,31 +9,23 @@ namespace Lua {
         lua["debug_level"] = 1;
 
         // declare log function lg
-        lua["lg_"]=[](location_update_context_ptr &ctx, const char *msg){
-            lg(0, "[{}] [imsi:{}] [{}] {}",
-                ctx->sid, ctx->imsi, ctx->logic_session, msg
-            );
+        lua["lg_"]=[](const char *msg){
+            lg(0, "{}", msg);
         };
 
         // declare debug function ld
-        lua["ld_"]=[](location_update_context_ptr &ctx, const char *msg){
-            lg(0, "{yellow}[{}] [imsi:{}] [{}] {}",
-                ctx->sid, ctx->imsi, ctx->logic_session, msg
-            );
+        lua["ld_"]=[](const char *msg){
+            lg(0, "{yellow}{}", msg);
         };
 
         // declare warning function lw
-        lua["lw_"]=[](location_update_context_ptr &ctx, const char *msg){
-            lw("[{}] [imsi:{}] [{}] {}",
-                ctx->sid, ctx->imsi, ctx->logic_session, msg
-            );
+        lua["lw_"]=[](const char *msg){
+            lw("{}", msg);
         };
 
         // declare error function le
-        lua["le_"]=[](location_update_context_ptr &ctx, const char *msg){
-            le("[{}] [imsi:{}] [{}] {}",
-                ctx->sid, ctx->imsi, ctx->logic_session, msg
-            );
+        lua["le_"]=[](const char *msg){
+            le("{}", msg);
         };
 
         lua.new_usertype<utils::lvs>("lvs");

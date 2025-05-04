@@ -9,7 +9,6 @@ extern "C" {
 #include "sparsepp/spp.h"
 #include "typedef.h"
 #include "log/log.hpp"
-
 #include <memory>
 
 class Regexp {
