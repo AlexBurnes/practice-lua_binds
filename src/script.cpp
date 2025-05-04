@@ -2,6 +2,31 @@
 #include "lua/bind.hpp"
 #include "regexp/regexp.hpp"
 #include "file/file.hpp"
+#include "script.hpp"
+
+//https://sol2.readthedocs.io/en/latest/exceptions.html
+inline void lua_panic(sol::optional<std::string> maybe_message) {
+    le("Lua is in a panic state and will now abort() the application");
+    if (maybe_message) {
+        const std::string& message = maybe_message.value();
+        le("exception error message: {}", message);
+    }
+    // When this function exits, Lua will exhibit default behavior and abort()
+}
+
+int exception_handler(
+    lua_State* L, sol::optional<const std::exception&> maybe_exception, sol::string_view description
+) {
+    if (maybe_exception) {
+        const std::exception& ex = *maybe_exception;
+        le("An exception occurred, exception '{}'", ex.what());
+    }
+    else {
+        std::string desc{description.data(), description.size()};
+        le("An exception occurred, description '{}'", desc);
+    }
+    return sol::stack::push(L, description);
+}
 
 int script_load(const std::string& file_name, const std::string& script_dir, bool test_script, bool show_coverage) {
 
@@ -201,7 +226,6 @@ int script_load(const std::string& file_name, const std::string& script_dir, boo
 
 
             auto module_code = load_module(module);
-
 
             if (module_code == "") {
                 le("required module {}-{} is not loaded into database", module, version);

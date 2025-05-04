@@ -33,7 +33,7 @@ RUN scripts/cpp-check-install
 RUN scripts/cpp-check
 RUN scripts/style-check
 RUN conan install . -of .build -pr debug --build missing
-RUN cmake -H. -B.build -DCMAKE_BUILD_TYPE=Debug -DCMAKE_TOOLCHAIN_FILE=conan_toolchain.cmake -DCMAKE_CXX_CPPCHECK=/usr/local/bin/cppcheck
+RUN cmake -H. -B.build -DCMAKE_BUILD_TYPE=Debug -DCMAKE_TOOLCHAIN_FILE=conan_toolchain.cmake
 RUN cmake --build .build
 RUN cmake --install .build
 RUN ctest --test-dir .build -T Test -T Coverage -V

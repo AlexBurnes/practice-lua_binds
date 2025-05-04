@@ -50,7 +50,7 @@
 
 #define FILE_OPENED 1
 
-class File : public Iam {
+class File {
     FD              file_fd;
     size_t          file_size;   //whole size of file
     size_t          file_offset; //readed offset of file

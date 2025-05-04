@@ -18,12 +18,12 @@ target_link_libraries(
 )
 
 add_executable(
-    lua_bind
+    luabind
         lua_bind.cpp
 )
 
 target_link_libraries(
-    lua_bind
+    luabind
     PRIVATE
         sol2::sol2
         fmt::fmt
@@ -33,7 +33,7 @@ target_link_libraries(
 install(
     TARGETS
         luacpp
-        lua_bind
+        luabind
     RUNTIME DESTINATION bin
 )
 

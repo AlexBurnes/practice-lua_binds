@@ -3,7 +3,7 @@
 #include <time.h>
 #include <unistd.h>
 
-File::File() : Iam("{}", (void *)this) {
+File::File() {
     file_offset = 0;
     file_size   = 0;
     file_fd     = 0;

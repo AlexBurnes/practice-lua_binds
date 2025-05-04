@@ -3,8 +3,9 @@
 #include <sol/sol.hpp>
 #include <thread>
 #include <mutex>
-#include <log/log.hpp>
-#include <typedef.h>
+#include "log/log.hpp"
+#include "typedef.h"
+#include "types.hpp"
 
 namespace Lua {
 
