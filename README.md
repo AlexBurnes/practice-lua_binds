@@ -46,3 +46,8 @@ Format described in style_format.txt, based on [Google C++ Style Guide](https://
 ## License
 
 This work is distributed under the [Apache License, Version 2.0](https://www.apache.org/licenses/LICENSE-2.0), see [LICENSE](https://github.com:AlexBurnes/practice-lua_binds/blob/master/LICENSE) for more information
+
+
+## Run lua sctipt
+
+    ./bin/luacpp -d ./lua -t -c ./lua/luaunit.lua
