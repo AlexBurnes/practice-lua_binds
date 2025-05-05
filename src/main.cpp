@@ -16,7 +16,7 @@ int main(const int argc, const char *argv[]) {
 
     std::string script_dir = std::getenv("LUACPP_SCRIPT_DIR")
         ? std::getenv("LUACPP_SCRIPT_DIR")
-        : "var/lua/"
+        : "./lua"
     ;
 
     cxxopts::Options options("luacpp", "luacpp " PROJECT_VERSION ". Lua C++ binding example application");

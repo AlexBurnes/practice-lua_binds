@@ -8,6 +8,6 @@ recursive.module = "recursive"
 recursive.version = "0.1.0"
 
 ---@require log module
-recursive.log = require("log", "0.2.0")
+recursive.log = require("log")
 
 return recursive
