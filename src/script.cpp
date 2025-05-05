@@ -30,7 +30,7 @@ int exception_handler(
 
 std::string load_module(const std::string &script_dir, const std::string& module) {
     std::string module_code = "";
-    std::string file_name = fmt::format("{}/{}", script_dir, module);
+    std::string file_name = fmt::format("{}/{}.lua", script_dir, module);
     //!@note load code from script file
     File logic_file;
     unless (logic_file.Open(*file_name)) {
@@ -566,7 +566,7 @@ int script_load(const std::string& file_name, const std::string& script_dir, boo
     }
     ld(1, "coverage {} total {}", coverage, total);
 
-    lg(2, "{} coverage:", file_name);
+    if (show_coverage) lg(1, "{} coverage:", file_name);
 
     size_t line = 0;
     size_t cover_lines = 0;
@@ -637,16 +637,18 @@ int script_load(const std::string& file_name, const std::string& script_dir, boo
 
         std::string align = utils::pad(" ") * (aling_length - fmt::format("{}", line).length() + 1);
 
-        if (line_cover & 16) {
-            //! output comments
-            lg(2, "[{}]{}│ {black}{}{reset}", line, align, code);
-        }
-        else if (line_cover & 8) {
-            //! output covered code
-            lg(2, "[{}]{}│ {}{reset}", line, align, code);
-        }
-        else {
-            lg(2, "[{}]{}│ {red}{}{reset}", line, align, code);
+        if (show_coverage) {
+            if (line_cover & 16) {
+                //! output comments
+                lg(1, "[{}]{}│ {black}{}{reset}", line, align, code);
+            }
+            else if (line_cover & 8) {
+                //! output covered code
+                lg(1, "[{}]{}│ {}{reset}", line, align, code);
+            }
+            else {
+                lg(1, "[{}]{}│ {red}{}{reset}", line, align, code);
+            }
         }
     }
 
