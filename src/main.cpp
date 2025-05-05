@@ -1,23 +1,20 @@
-#include <cxxopts.hpp>
 #include <fmt/core.h>
-#include <iostream>
+
+#include <cxxopts.hpp>
 #include <fstream>
+#include <iostream>
 #include <memory>
 
-#include "typedef.h"
 #include "log/log.hpp"
 #include "script.hpp"
+#include "typedef.h"
 
 #define PROJECT_VERSION "0.1.0"
 
 int main(const int argc, const char *argv[]) {
-
     lg::log_init(lg::Levels::ANY, 1, 0, true);
 
-    std::string script_dir = std::getenv("LUACPP_SCRIPT_DIR")
-        ? std::getenv("LUACPP_SCRIPT_DIR")
-        : "./lua"
-    ;
+    std::string script_dir = std::getenv("LUACPP_SCRIPT_DIR") ? std::getenv("LUACPP_SCRIPT_DIR") : "./lua";
 
     cxxopts::Options options("luacpp", "luacpp " PROJECT_VERSION ". Lua C++ binding example application");
 
@@ -36,10 +33,8 @@ int main(const int argc, const char *argv[]) {
     if (result.count("help")) {
         fmt::print("{}", options.help());
         fmt::print("Environment:\n");
-        fmt::print("\tLUACPP_SCRIPT_DIR  {}\n",
-            std::getenv("LUACPP_SCRIPT_DIR")
-                ? std::getenv("LUACPP_SCRIPT_DIR")
-                : ""
+        fmt::print(
+            "\tLUACPP_SCRIPT_DIR  {}\n", std::getenv("LUACPP_SCRIPT_DIR") ? std::getenv("LUACPP_SCRIPT_DIR") : ""
         );
         return success;
     }
@@ -70,12 +65,9 @@ int main(const int argc, const char *argv[]) {
     }
 
     auto script_file = result["script"].as<std::string>();
-    unless (script_load(script_file, script_dir, test, coverage)) {
-        le("failed load and run script {}", script_file);
-    }
+    unless(script_load(script_file, script_dir, test, coverage)) { le("failed load and run script {}", script_file); }
 
     lr("{} done", script_file);
 
     return success;
-
 }

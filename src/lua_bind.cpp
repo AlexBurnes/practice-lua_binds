@@ -1,37 +1,35 @@
 #include <fmt/format.h>
-#include <sol/sol.hpp>
+
 #include <chrono>
+#include <sol/sol.hpp>
 
 class Bench {
-    std::chrono::high_resolution_clock::time_point start, end;
-    const std::string what;
-    const size_t records;
+        std::chrono::high_resolution_clock::time_point start, end;
+        const std::string                              what;
+        const size_t                                   records;
+
     public:
         Bench(std::string_view what, const size_t records)
-        : 
-            start{std::chrono::high_resolution_clock::now()},
-            what{what}, 
-            records{records}
-        {}
+            : start{std::chrono::high_resolution_clock::now()}, what{what}, records{records} {}
 
         ~Bench() {
             end = std::chrono::high_resolution_clock::now();
             double duration = std::chrono::duration_cast<std::chrono::duration<double>>(end - start).count();
-            fmt::print("{} {} in {}s avg {}ns {}r/s\n",
-                what, records, duration, (duration / records) * 1e9, 1 / (duration / records)
+            fmt::print(
+                "{} {} in {}s avg {}ns {}r/s\n", what, records, duration, (duration / records) * 1e9,
+                1 / (duration / records)
             );
         }
 };
 
-//https://sol2.readthedocs.io/en/latest/exceptions.html
+// https://sol2.readthedocs.io/en/latest/exceptions.html
 int exception_handler(
     lua_State* L, sol::optional<const std::exception&> maybe_exception, sol::string_view description
 ) {
     if (maybe_exception) {
         const std::exception& ex = *maybe_exception;
         fmt::print("An exception occurred, exception '{}'\n", ex.what());
-    }
-    else {
+    } else {
         std::string desc{description.data(), description.size()};
         fmt::print("An exception occurred, description '{}'\n", desc);
     }
@@ -48,15 +46,15 @@ int check_script(sol::protected_function_result load_result) {
 }
 
 int main() {
-    uint tests = 1e6;
+    uint       tests = 1e6;
     sol::state lua;
     lua.open_libraries(
         sol::lib::base, sol::lib::jit, sol::lib::string, sol::lib::coroutine, sol::lib::math, sol::lib::os
     );
     lua.set_exception_handler(&exception_handler);
-    lua.set_function("throw", [](){throw std::runtime_error("exception!");});
-    lua["_SOL_VERSION"]=SOL_VERSION_STRING;
-    auto load_result = lua.script(R"(
+    lua.set_function("throw", []() { throw std::runtime_error("exception!"); });
+    lua["_SOL_VERSION"] = SOL_VERSION_STRING;
+    auto        load_result = lua.script(R"(
         local jit_version
         if type(jit) == 'table' then jit_version = jit.version else jit_version = "not loaded" end
         return "lua ".._VERSION..", sol2 ".._SOL_VERSION..", jit "..jit_version
@@ -64,23 +62,19 @@ int main() {
     std::string full_version = load_result;
     fmt::print("loaded {}\n", full_version);
 
-    lua["lg_"] = [](const uint level, const char *msg){
-        fmt::print("{}\n", msg);
-    };
+    lua["lg_"] = [](const uint level, const char* msg) { fmt::print("{}\n", msg); };
     check_script(lua.script(R"(
         function lg(level, fmt, ...)
             string.format(fmt, ...)
         end
     )"));
 
-    lua["log_quiet"] = [](const bool quiet)->void {};
-    auto add = [](const uint a, const uint b)->uint {
-        return a + b + b + b;
-    };
+    lua["log_quiet"] = [](const bool quiet) -> void {};
+    auto add = [](const uint a, const uint b) -> uint { return a + b + b + b; };
     lua["add_cpp"] = add;
-    lua["loop_cpp"] = [add](const uint tests)->uint {
+    lua["loop_cpp"] = [add](const uint tests) -> uint {
         uint a = 0;
-        for (auto i = 0; i < tests; ++i)  {
+        for (auto i = 0; i < tests; ++i) {
             a = add(a, 1);
         }
         return a;
@@ -133,27 +127,27 @@ int main() {
     fmt::print("bench lua add()");
     {
         Bench bench("add", tests);
-        auto function = lua["test_add"];
+        auto  function = lua["test_add"];
         function(tests);
     }
     fmt::print("bench lua add_cpp()");
     {
         Bench bench("add_cpp", tests);
-        auto function = lua["test_add_cpp"];
+        auto  function = lua["test_add_cpp"];
         function(tests);
     }
     fmt::print("bench lua test_cpp()");
     {
         Bench bench("test_cpp", tests);
-        auto function = lua["test_cpp"];
+        auto  function = lua["test_cpp"];
         function(tests);
     }
     fmt::print("bench lua test_log()");
     {
         Bench bench("test_log", tests);
-        auto function = lua["test_log"];
+        auto  function = lua["test_log"];
         function(tests);
     }
-    fmt::print( "done");
+    fmt::print("done");
     return 0;
 }

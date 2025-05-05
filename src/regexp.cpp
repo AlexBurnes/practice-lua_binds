@@ -1,23 +1,18 @@
 #include "regexp/regexp.hpp"
+
 #include "deffer.hpp"
 
 Regexp::Regexp(char *search, int vector_size)
-    :
-        vector_size(vector_size),
-        pos(_property),
-        string(_property),
-        length(_property)
-{
+    : vector_size(vector_size), pos(_property), string(_property), length(_property) {
     vector = new int[vector_size];
-    match  = nullptr;
+    match = nullptr;
     errstr = nullptr;
     stat_success = 0;
-    stat_failed  = 0;
+    stat_failed = 0;
 
     if (search) {
         string = search;
     }
-
 }
 
 Regexp::~Regexp() {
@@ -32,13 +27,12 @@ Regexp::~Regexp() {
 }
 
 Regexp::regexp_s::regexp_s() {
-    regexp  = nullptr;
+    regexp = nullptr;
     regexpe = nullptr;
     keep_matched_pos = 0;
 }
 
 Regexp::regexp_s::~regexp_s() {
-
     if (regexp) {
         pcre_free(regexp);
         regexp = nullptr;
@@ -48,21 +42,19 @@ Regexp::regexp_s::~regexp_s() {
         pcre_free_study(regexpe);
         regexpe = nullptr;
     }
-
 }
 
 int Regexp::operator()(const std::string &expression, const char *str) {
-
     if (match) {
-        //free previous search
+        // free previous search
         pcre_free_substring_list(match);
         match = nullptr;
     }
 
-    unless (regexps.count(expression)) {
-        //add new one
+    unless(regexps.count(expression)) {
+        // add new one
         auto regexs = compile(expression.c_str());
-        unless (regexs) {
+        unless(regexs) {
             lf("failed compile regexp expression '{}'", expression);
             return ::error;
         }
@@ -78,23 +70,14 @@ int Regexp::operator()(const std::string &expression, const char *str) {
     affirm((char *)search == nullptr and "string to search is undefined");
 
     ld(10, "regexp string '{}'", search);
-    int rc = pcre_exec(
-        regexs->regexp,
-        regexs->regexpe,
-        search,
-        strlen(search),
-        0,
-        0,
-        vector,
-        vector_size
-    );
+    int rc = pcre_exec(regexs->regexp, regexs->regexpe, search, strlen(search), 0, 0, vector, vector_size);
 
     ld(10, "regexp result {}", rc);
 
-    //FIXME I think most of the error messages need to be fatal instead of error!
-    if(rc < 0) {
+    // FIXME I think most of the error messages need to be fatal instead of error!
+    if (rc < 0) {
         stat_failed++;
-        switch(rc) {
+        switch (rc) {
             case PCRE_ERROR_NOMATCH:
                 return ::error;
             case PCRE_ERROR_NULL:
@@ -133,7 +116,7 @@ int Regexp::operator()(const std::string &expression, const char *str) {
 
     ld(10, "regexp {} matched {}", expression, matched);
 
-    unless (str) {
+    unless(str) {
         if (regexs->keep_matched_pos) {
             string += vector[1];
         }
@@ -158,7 +141,7 @@ bool Regexp::exists(unsigned int i) {
     return true;
 }
 
-int Regexp::index(unsigned int i, int whence) {     // whence 0 start, 1 end
+int Regexp::index(unsigned int i, int whence) {  // whence 0 start, 1 end
     if (i >= matched) {
         return 0;
     }
@@ -168,16 +151,15 @@ int Regexp::index(unsigned int i, int whence) {     // whence 0 start, 1 end
     return vector[i * 2 + (whence ? 2 : 1)];
 }
 
-Regexp::regexp_t* Regexp::compile(const char *_expression) {
-
+Regexp::regexp_t *Regexp::compile(const char *_expression) {
     ld(10, "compile regexp '{}'", _expression);
 
-    char *expression = new char[strlen(_expression) + 1];
-    deffer delete_expression([expression](){delete[] expression;});
+    char  *expression = new char[strlen(_expression) + 1];
+    deffer delete_expression([expression]() { delete[] expression; });
     strcpy(expression, _expression);
-    char * expression_p = expression + strlen(expression) - 1;
+    char *expression_p = expression + strlen(expression) - 1;
 
-    unless ((char)*expression == '/') {
+    unless((char)*expression == '/') {
         le("wrong regexp pattern '{}', pattern must be placed between '/'", _expression);
         return nullptr;
     }
@@ -204,10 +186,10 @@ Regexp::regexp_t* Regexp::compile(const char *_expression) {
                 break;
             case 'o':
             case 'g':
-                //does not make sense for library, by default library worked as this options are set
+                // does not make sense for library, by default library worked as this options are set
                 break;
             default:
-                //le("unknown pattern modifier '{}'", *expression_p);
+                // le("unknown pattern modifier '{}'", *expression_p);
                 break;
         }
         if (expression_p == expression) {
@@ -225,15 +207,14 @@ Regexp::regexp_t* Regexp::compile(const char *_expression) {
     regexs->keep_matched_pos = keep_matched_pos;
 
     regexs->regexp = pcre_compile(expression, options, &errstr, &erroff, nullptr);
-    unless (regexs->regexp) {
+    unless(regexs->regexp) {
         le("failed compile regexp expression '{}'", _expression);
         delete regexs;
         return nullptr;
     }
 
     regexs->regexpe = pcre_study(regexs->regexp, 0, &errstr);
-    if (errstr)
-        lw("could not study regexp expression '{}': {}\n", _expression, errstr);
+    if (errstr) lw("could not study regexp expression '{}': {}\n", _expression, errstr);
 
     int capture_count;
     pcre_fullinfo(regexs->regexp, regexs->regexpe, PCRE_INFO_CAPTURECOUNT, &capture_count);
@@ -242,4 +223,3 @@ Regexp::regexp_t* Regexp::compile(const char *_expression) {
 
     return regexs;
 }
-

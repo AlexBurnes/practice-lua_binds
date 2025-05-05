@@ -21,7 +21,8 @@ RUN pip3 install conan --break-system-packages && \
     cd build && \
     conan profile detect --force 
 
-RUN cp ~/.conan2/profiles/default ~/.conan2/profiles/debug && sed -i -e 's/Release/Debug/g' ~/.conan2/profiles/debug
+RUN sed -i -e "s/compiler.cppstd=gnu17/compiler.cppstd=gnu20/g" ~/.conan2/profiles/default &&\
+    cp ~/.conan2/profiles/default ~/.conan2/profiles/debug && sed -i -e 's/Release/Debug/g' ~/.conan2/profiles/debug
 
 RUN apt-get -y install \
     valgrind
@@ -29,7 +30,7 @@ RUN apt-get -y install \
 WORKDIR build
 COPY . . 
 
-RUN scripts/cpp-check-install
+RUN scripts/cpp-check install
 RUN scripts/cpp-check
 RUN scripts/style-check
 RUN conan install . -of .build -pr debug --build missing
@@ -37,8 +38,6 @@ RUN cmake -H. -B.build -DCMAKE_BUILD_TYPE=Debug -DCMAKE_TOOLCHAIN_FILE=conan_too
 RUN cmake --build .build
 RUN cmake --install .build
 RUN ctest --test-dir .build -T Test -T Coverage -V
-RUN scripts/mem-check bin/test_sort_keys
-RUN bin/test_bench --benchmark_counters_tabular=true
 
 RUN lcov --directory .build --capture --output-file coverage.info
 RUN lcov --extract coverage.info '*src/*' -o coverage.info

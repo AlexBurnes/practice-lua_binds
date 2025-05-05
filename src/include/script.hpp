@@ -1,5 +1,6 @@
 #pragma once
 
+#include <vector>
 #include <string>
 
 typedef std::vector<std::pair<std::string, std::string>> script_dependencies_t;

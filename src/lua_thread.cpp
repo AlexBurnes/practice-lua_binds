@@ -2,42 +2,39 @@
     testing lua coroutine in multithreaded environment
 */
 
-#include <log/log.hpp>
-#include <sol/sol.hpp>
-#include <mutex>
-#include <thread>
-#include <time.h>
 #include <stdlib.h>
+#include <time.h>
+
+#include <log/log.hpp>
+#include <mutex>
+#include <sol/sol.hpp>
+#include <thread>
 
 class Bench {
-    std::chrono::high_resolution_clock::time_point start_, end_;
-    std::string what_;
-    const size_t records_;
+        std::chrono::high_resolution_clock::time_point start_, end_;
+        std::string                                    what_;
+        const size_t                                   records_;
+
     public:
-        Bench(std::string_view what, const size_t records)
-        : what_{what}, records_{records}
-        {
+        Bench(std::string_view what, const size_t records) : what_{what}, records_{records} {
             start_ = std::chrono::high_resolution_clock::now();
         };
         ~Bench() {
             end_ = std::chrono::high_resolution_clock::now();
             double duration = std::chrono::duration_cast<std::chrono::duration<double>>(end_ - start_).count();
-            le(
-                "{} {} in {}s avg {}ns {}r/s",
-                what_, records_, duration, (duration / records_) * 1e9, 1 / (duration / records_)
-            );
+            le("{} {} in {}s avg {}ns {}r/s", what_, records_, duration, (duration / records_) * 1e9,
+               1 / (duration / records_));
         };
 };
 
-//https://sol2.readthedocs.io/en/latest/exceptions.html
+// https://sol2.readthedocs.io/en/latest/exceptions.html
 int exception_handler(
     lua_State* L, sol::optional<const std::exception&> maybe_exception, sol::string_view description
 ) {
     if (maybe_exception) {
         const std::exception& ex = *maybe_exception;
         le("An exception occurred, exception '{}'", ex.what());
-    }
-    else {
+    } else {
         std::string desc{description.data(), description.size()};
         le("An exception occurred, description '{}'", desc);
     }
@@ -55,14 +52,17 @@ int check_script(sol::protected_function_result load_result) {
 
 class Task {
     public:
-        Task(const int worker, const size_t test, sol::state* lua, std::mutex *mutex)
-        : worker{worker}, test{test}, step{0},
-          thread{sol::thread::create(lua->lua_state())}, state{thread.state()}, coroutine{state["main"]},
-          mutex{mutex}
-        {}
+        Task(const int worker, const size_t test, sol::state* lua, std::mutex* mutex)
+            : worker{worker},
+              test{test},
+              step{0},
+              thread{sol::thread::create(lua->lua_state())},
+              state{thread.state()},
+              coroutine{state["main"]},
+              mutex{mutex} {}
         ~Task() {}
 
-        template<typename ...T>
+        template <typename... T>
         auto call(std::shared_ptr<Task> task, T&&... args) {
             mutex->lock();
             state["task"] = task;
@@ -72,24 +72,22 @@ class Task {
             return return_func;
         }
 
-        const int worker;
+        const int    worker;
         const size_t test;
-        int step;
+        int          step;
 
-        sol::thread thread;
+        sol::thread     thread;
         sol::state_view state;
-        sol::coroutine coroutine;
+        sol::coroutine  coroutine;
 
-        std::mutex  *mutex;
-
+        std::mutex* mutex;
 };
 
 int main() {
-
     lg::log_init(lg::Levels::ANY, 1, 1);
 
     size_t tests = 1e3;
-    int workers = 10;
+    int    workers = 10;
 
     sol::state lua;
     std::mutex mutex;
@@ -97,9 +95,9 @@ int main() {
         sol::lib::base, sol::lib::jit, sol::lib::string, sol::lib::coroutine, sol::lib::math, sol::lib::os
     );
     lua.set_exception_handler(&exception_handler);
-    lua.set_function("throw", [](){throw std::runtime_error("exception!");});
+    lua.set_function("throw", []() { throw std::runtime_error("exception!"); });
 
-    lua["lg_"]=[](std::shared_ptr<Task>& task, std::string_view msg){
+    lua["lg_"] = [](std::shared_ptr<Task>& task, std::string_view msg) {
         lg(1, "[thread:{}] [{}] step {}: {}", task->worker, task->test, task->step, msg);
     };
 
@@ -123,8 +121,8 @@ int main() {
     {
         auto task_type = lua.new_usertype<Task>("Task");
         task_type.set("worker", sol::readonly(&Task::worker));
-        task_type.set("test"  , sol::readonly(&Task::test));
-        task_type.set("step"  , &Task::step);
+        task_type.set("test", sol::readonly(&Task::test));
+        task_type.set("step", &Task::step);
     }
 
     auto fn = [tests](int worker, sol::state* lua, std::mutex* mutex) {
@@ -132,11 +130,11 @@ int main() {
         size_t t = tests;
         while (i < t) {
             ++i;
-            int step;
+            int      step;
             timespec sleep = {0};
 
             {
-                //create coroutine
+                // create coroutine
 
                 ld(1, "[thread:{}] [{}] step {}: make lua state", worker, i, 0);
 
@@ -148,7 +146,7 @@ int main() {
                 ld(1, "[thread:{}] [{}] step {}: sleep {}(ns)", task->worker, task->test, task->step, sleep.tv_nsec);
                 nanosleep(&sleep, nullptr);
 
-                //call coroutine
+                // call coroutine
                 ld(1, "[thread:{}] [{}] step {}: call first step", task->worker, task->test, task->step);
                 task->call(task, 1);
                 lg(1, "[thread:{}] [{}] step {}: return first step", task->worker, task->test, task->step);
@@ -157,36 +155,34 @@ int main() {
                 ld(1, "[thread:{}] [{}] step {}: sleep {}(ns)", task->worker, task->test, task->step, sleep.tv_nsec);
                 nanosleep(&sleep, nullptr);
 
-                //call yelded coroutine
+                // call yelded coroutine
                 ld(1, "[thread:{}] [{}] step {}: call second step", task->worker, task->test, task->step);
                 task->call(task, 2);
                 lg(1, "[thread:{}] [{}] step {}: return second step", task->worker, task->test, task->step);
 
-                //lock for destroy
+                // lock for destroy
                 mutex->lock();
             }
             mutex->unlock();
-
         }
     };
 
     {
-
         Bench bench("lua", workers * tests);
 
-        std::vector<std::thread *> threads;
+        std::vector<std::thread*> threads;
 
         lg::quiet(true);
 
-        for(int i = 0; i < workers; i++) {
+        for (int i = 0; i < workers; i++) {
             threads.push_back(new std::thread(fn, i, &lua, &mutex));
         }
 
-        for(int i = 0; i < workers; i++) {
+        for (int i = 0; i < workers; i++) {
             threads[i]->join();
         }
 
-        for(int i = 0; i < workers; i++) {
+        for (int i = 0; i < workers; i++) {
             delete threads[i];
         }
 
