@@ -10,6 +10,8 @@ test.version = "0.1.0"
         Multiline comment for testing covering
 
     ]]--
+        obj = some.new();
+        some_function("test", "value")
         log.le("some code that executing")
         return ok
     end

@@ -13,4 +13,4 @@ CMakeDeps
 CMakeToolchain
 
 [options]
-sol2/*:with_lua=lua
+sol2/*:with_lua=luajit
