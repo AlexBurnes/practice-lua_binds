@@ -206,8 +206,8 @@ int script_load(const std::string &file_name, const std::string &script_dir, boo
     };
 
     lua["_load_coverage_hook"] = [&debug_info, &script_name, &source_coverage, &set_coverage,
-                                  &dump_table](sol::object event, int line, int level) {
-        sol::table i = debug_info(2, "nS");
+                                  &dump_table](sol::object event, int line) {
+        sol::table i = debug_info(2, "nfS");
         if (i != sol::nil) {
             std::string source = i["source"];
             if (source == script_name) {
@@ -405,9 +405,8 @@ int script_load(const std::string &file_name, const std::string &script_dir, boo
     }
 
     lua["_coverage_hook"] = [&debug_info, &script_name, &alias_coverage, &source_coverage, &defineline_coverage,
-                             &set_coverage, &dump_table](sol::object event, int line, int level) {
-        level = level > 0 ? level : 2;
-        sol::table info = debug_info(level, "nfS");
+                             &set_coverage, &dump_table](sol::object event, int line) {
+        sol::table info = debug_info(2, "nfSu");
         if (info != sol::nil) {
             std::string source = info["source"];
             std::string name = info["name"];
@@ -428,15 +427,6 @@ int script_load(const std::string &file_name, const std::string &script_dir, boo
                     alias_coverage[name] = std::make_shared<int>(1);
                 }
                 dump_table(info, 4, "  ");
-            }
-            if (false) {
-                for (int i = nups + level; i >= 0; i--) {
-                    lg(1, "level {}", i);
-                    info = debug_info(i, "unfS");
-                    if (info != sol::nil) {
-                        dump_table(info, 4, "  ");
-                    }
-                }
             }
         }
     };
