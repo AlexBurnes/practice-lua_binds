@@ -15,10 +15,8 @@
 # limitations under the License.
 
 source "$(dirname "$(readlink -f "$0")")"/scripts/functions.sh
-conan install . -of .build -pr debug --build missing
+conan install . -of .build -pr:h debug -pr:b debug --build missing
 cmake --preset conan-debug
-conan --build --preset conan-debug
-cmake --install --preset conan-debug
+cmake --build --preset conan-debug
+cmake --build .build/build/Debug --target install
 ctest --test-dir .build/build/Debug -T Test -V
-ctest --test-dir .build/build/Debug -T Coverage
-bin/test_bench --benchmark_counters_tabular=true
