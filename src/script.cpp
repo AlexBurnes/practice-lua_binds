@@ -186,11 +186,11 @@ int script_load(const std::string &file_name, const std::string &script_dir, boo
     };
 
     auto set_coverage = [&source_coverage](int line, sol::table &i) -> void {
-        auto        lines = source_coverage.size();
-        std::string source = i["source"];
+        auto lines = source_coverage.size();
+        std::string source = i.get_or<std::string>("source", "");
         std::string name = i.get_or<std::string>("name", "");
-        int         linedefined = i["linedefined"];
-        int         laslinedefined = i["lastlinedefined"];
+        int linedefined = i["linedefined"];
+        int laslinedefined = i["lastlinedefined"];
         ld(3, "{}.{} {} [{}:{}]", source, line, name, linedefined, laslinedefined);
         //!@note remember lua arrays index start from 1!
         if (line > 0 and lines >= line) {
@@ -207,9 +207,9 @@ int script_load(const std::string &file_name, const std::string &script_dir, boo
 
     lua["_load_coverage_hook"] = [&debug_info, &script_name, &source_coverage, &set_coverage,
                                   &dump_table](sol::object event, int line) {
-        sol::table i = debug_info(2, "nS");
+        sol::table i = debug_info(2, "nfS");
         if (i != sol::nil) {
-            std::string source = i["source"];
+            std::string source = i.get_or<std::string>("source", "");
             if (source == script_name) {
                 set_coverage(line, i);
                 dump_table(i, 2, "  ");
@@ -224,8 +224,8 @@ int script_load(const std::string &file_name, const std::string &script_dir, boo
     lua.set_function(
         "require",
         [&loaded_modules, &lua, &required_modules, &recursive_level,
-         &script_dir](std::string module) -> sol::table & {
-            std::string version = "";
+         &script_dir](std::string module, std::optional<std::string> version_) -> sol::table & {
+            std::string version = version_.has_value() ? version_.value() : "";
             ld(1, "require module {} version {}, recursive level {}", module, version, recursive_level);
             auto module_key = fmt::format("{}", module);
             if (loaded_modules.count(module)) {
@@ -407,13 +407,12 @@ int script_load(const std::string &file_name, const std::string &script_dir, boo
 
     lua["_coverage_hook"] = [&debug_info, &script_name, &alias_coverage, &source_coverage, &defineline_coverage,
                              &set_coverage, &dump_table](sol::object event, int line) {
-        int level = 2;
-        sol::table info = debug_info(level, "nfS");
+        sol::table info = debug_info(2, "nfSu");
         if (info != sol::nil) {
-            std::string source = info["source"];
+            auto source = info.get_or<std::string>("source", "");
             auto name = info.get_or<std::string>("name", "");
-            int         linedefined = info["linedefined"];
-            int         lastline = info["lastlinedefined"];
+            int linedefined = info["linedefined"];
+            int lastline = info["lastlinedefined"];
             if (false and line > lastline) {
                 lw("strange source line {} is bigger that last defined line {}", line, lastline);
             }
@@ -430,15 +429,6 @@ int script_load(const std::string &file_name, const std::string &script_dir, boo
                     alias_coverage[name] = std::make_shared<int>(1);
                 }
                 dump_table(info, 4, "  ");
-            }
-            if (false) {
-                for (int i = nups + level; i >= 0; i--) {
-                    lg(1, "level {}", i);
-                    info = debug_info(i, "unfS");
-                    if (info != sol::nil) {
-                        dump_table(info, 4, "  ");
-                    }
-                }
             }
         }
     };

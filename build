@@ -15,11 +15,10 @@
 # limitations under the License.
 
 source "$(dirname "$(readlink -f "$0")")"/scripts/functions.sh
-
 conan install . -of .build -pr debug --build missing
-cmake -H. -B.build -DCMAKE_BUILD_TYPE=Debug -DCMAKE_TOOLCHAIN_FILE=conan_toolchain.cmake -DCMAKE_INSTALL_PREFIX=./
-cmake --build .build
-cmake --install .build
-ctest --test-dir .build -T Test -V
-#ctest --test-dir .build -T Coverage
-#bin/test_bench --benchmark_counters_tabular=true
+cmake --preset conan-debug
+conan --build --preset conan-debug
+cmake --install --preset conan-debug
+ctest --test-dir .build/build/Debug -T Test -V
+ctest --test-dir .build/build/Debug -T Coverage
+bin/test_bench --benchmark_counters_tabular=true

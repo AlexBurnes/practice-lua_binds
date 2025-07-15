@@ -12,5 +12,8 @@ pcre/8.45
 CMakeDeps
 CMakeToolchain
 
+[layout]
+cmake_layout
+
 [options]
 sol2/*:with_lua=luajit
